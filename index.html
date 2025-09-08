@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ポートフォリオ | YOUR NAME</title>
+  <meta name="description" content="製造DX／データ活用／アプリ内製のポートフォリオ" />
+  <style>
+    /* ==== Design tokens & reset ==== */
+    * { box-sizing: border-box; }
+    :root { --maxw: 980px; --gap: 16px; --radius: 10px; --border: 1px solid #e5e5e5; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: system-ui,-apple-system,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
+      color: #111; line-height: 1.7;
+    }
+
+    /* ==== Header ==== */
+    .site-header { position: sticky; top: 0; z-index: 10; background: #fff; border-bottom: var(--border); }
+    .site-header .container {
+      display: flex; align-items: center; justify-content: space-between;
+      max-width: var(--maxw); margin: 0 auto; padding: 10px 16px;
+    }
+    .brand { font-weight: 700; letter-spacing: .08em; text-decoration: none; color: inherit; }
+    .site-nav a { text-decoration: none; color: inherit; margin-left: 16px; font-size: .95rem; }
+    .site-nav a:hover { text-decoration: underline; }
+
+    /* ==== Hero ==== */
+    .hero { padding: 80px 16px 64px; border-bottom: var(--border); }
+    .hero__inner { max-width: var(--maxw); margin: 0 auto; text-align: center; }
+    .hero__title { font-size: clamp(24px, 6vw, 40px); letter-spacing: .04em; margin: 0 0 8px; }
+    .hero__subtitle { margin: 0 auto 16px; max-width: 720px; color: #444; }
+    .social a { display: inline-block; margin: 0 8px; text-decoration: none; color: inherit; font-weight: 600; }
+    .to-sections { display: inline-block; margin-top: 24px; text-decoration: none; color: inherit; }
+    .typing::after { content: "|"; animation: caret 1s steps(1) infinite; margin-left: 2px; }
+    @keyframes caret { 50% { opacity: 0; } }
+
+    /* ==== Sections ==== */
+    .section { padding: 56px 16px; }
+    .section > .container { max-width: var(--maxw); margin: 0 auto; }
+    .section h2 { letter-spacing: .12em; font-size: 0.95rem; font-weight: 800; margin: 0 0 16px; }
+    .section p { margin: 0 0 12px; }
+
+    /* ==== Cards ==== */
+    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .card { border: var(--border); border-radius: var(--radius); padding: 16px; }
+    .card h3 { margin: 0 0 8px; font-size: 1.05rem; }
+    .card p { color: #333; }
+    .btn { display: inline-block; padding: 6px 10px; border: var(--border); border-radius: 8px; text-decoration: none; color: inherit; font-weight: 600; }
+
+    /* ==== Tags ==== */
+    .tags { display: flex; gap: 8px; padding: 0; margin: 0; list-style: none; flex-wrap: wrap; }
+    .tags li { border: var(--border); border-radius: 999px; padding: 4px 10px; font-size: .95rem; }
+
+    /* ==== Timeline ==== */
+    .timeline { border-left: var(--border); margin-left: 8px; }
+    .timeline__item { display: grid; grid-template-columns: 120px 1fr; gap: 12px; padding: 12px 0 12px 12px; }
+    .timeline__year { color: #666; font-weight: 600; }
+    .timeline__body h3 { margin: 0 0 6px; font-size: 1.05rem; }
+    .timeline__body ul { margin: 0; padding-left: 18px; }
+
+    /* ==== Footer ==== */
+    .site-footer { border-top: var(--border); padding: 24px 16px; text-align: center; color: #555; }
+
+    /* ==== Responsive ==== */
+    @media (max-width: 900px) { .cards { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 600px) {
+      .site-nav a { margin-left: 12px; font-size: .9rem; }
+      .cards { grid-template-columns: 1fr; }
+      .timeline { margin-left: 0; }
+      .timeline__item { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a class="brand" href="#top">YOUR NAME</a>
+      <nav class="site-nav" aria-label="Primary">
+        <a href="#profile">PROFILE</a>
+        <a href="#achievements">ACHIEVEMENTS</a>
+        <a href="#skills">SKILLS</a>
+        <a href="#experience">EXPERIENCE</a>
+        <a href="#education">EDUCATION</a>
+      </nav>
+    </div>
+  </header>
+
+  <section id="top" class="hero" aria-label="Hero">
+    <div class="container hero__inner">
+      <h1 class="hero__title">
+        <span class="typing" data-text='["MANUFACTURING ENGINEER","DX / DATA / APP","MAKE IT WORK, MAKE IT RIGHT"]'></span>
+      </h1>
+      <p class="hero__subtitle">食品メーカーの製造エンジニア／DX推進。OEE、可視化、アプリ内製。</p>
+      <div class="social">
+        <a href="https://x.com/yourid" target="_blank" rel="noopener" aria-label="X">X</a>
+        <a href="https://www.linkedin.com/in/yourid" target="_blank" rel="noopener" aria-label="LinkedIn">LinkedIn</a>
+        <a href="https://github.com/yourid" target="_blank" rel="noopener" aria-label="GitHub">GitHub</a>
+        <a href="https://note.com/yourid" target="_blank" rel="noopener" aria-label="note">note</a>
+      </div>
+      <a class="to-sections" href="#profile" aria-label="Scroll to profile">▼</a>
+    </div>
+  </section>
+
+  <main id="content">
+    <section id="profile" class="section">
+      <div class="container">
+        <h2>PROFILE</h2>
+        <p>現場の課題から要件を抽出し、試作→実装→運用まで内製で推進。Python/Streamlit、Excel/VBA、PLC接続、ダッシュボード構築など。</p>
+      </div>
+    </section>
+
+    <section id="achievements" class="section">
+      <div class="container">
+        <h2>ACHIEVEMENTS</h2>
+        <div class="cards">
+          <article class="card">
+            <h3>タッピング設定最適化ツール</h3>
+            <p>目標目付に近づく設定を自動探索。過去事例をもとにレコメンド。</p>
+            <a class="btn" href="#" target="_blank" rel="noopener">詳細</a>
+          </article>
+          <article class="card">
+            <h3>温度センサ可視化ダッシュボード</h3>
+            <p>冷却トンネルの温度異常を早期検知。稼働率低下の未然防止に寄与。</p>
+            <a class="btn" href="#" target="_blank" rel="noopener">詳細</a>
+          </article>
+          <article class="card">
+            <h3>日報×設備データ突合</h3>
+            <p>異常記録とPLCログを統合。停止要因の特定と再発防止に活用。</p>
+            <a class="btn" href="#" target="_blank" rel="noopener">詳細</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="skills" class="section">
+      <div class="container">
+        <h2>SKILLS</h2>
+        <ul class="tags">
+          <li>Python</li><li>Streamlit</li><li>Excel/VBA</li>
+          <li>PLC/Field Network</li><li>Plant Simulation</li><li>AWS/Power BI</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="experience" class="section">
+      <div class="container">
+        <h2>EXPERIENCE</h2>
+        <div class="timeline">
+          <div class="timeline__item">
+            <div class="timeline__year">2024–</div>
+            <div class="timeline__body">
+              <h3>Ezaki Glico / GMJ</h3>
+              <ul>
+                <li>OEE改善、AGV/AMR検討、温度/粘度ダッシュボード内製</li>
+                <li>WCロス削減、異常予兆の見える化 PoC</li>
+              </ul>
+            </div>
+          </div>
+          <div class="timeline__item">
+            <div class="timeline__year">2023–</div>
+            <div class="timeline__body">
+              <h3>Supply Chain Digitalization</h3>
+              <ul>
+                <li>内製アプリ、現場DX、データ分析基盤の整備</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="education" class="section">
+      <div class="container">
+        <h2>EDUCATION</h2>
+        <p>学歴・資格を記載。</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <small>© <span id="year"></span> YOUR NAME</small>
+    </div>
+  </footer>
+
+  <script>
+    // Smooth anchor scroll
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+      a.addEventListener('click', e => {
+        const id = a.getAttribute('href').slice(1);
+        const el = document.getElementById(id);
+        if (el) { e.preventDefault(); el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+      });
+    });
+
+    // Typing effect
+    const el = document.querySelector('.typing');
+    if (el) {
+      const items = JSON.parse(el.dataset.text || '[]');
+      let i = 0, j = 0, deleting = false;
+      const tick = () => {
+        const word = items[i % items.length] || "";
+        if (!deleting) {
+          el.textContent = word.slice(0, j++);
+          if (j > word.length + 10) deleting = true;
+        } else {
+          el.textContent = word.slice(0, j--);
+          if (j <= 0) { deleting = false; i++; }
+        }
+        setTimeout(tick, deleting ? 40 : 80);
+      };
+      tick();
+    }
+
+    // Year
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
