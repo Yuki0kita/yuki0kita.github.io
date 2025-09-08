@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ポートフォリオ | YOUR NAME</title>
+  <title>ポートフォリオ | Yuki Okita</title>
   <meta name="description" content="製造DX／データ活用／アプリ内製のポートフォリオ" />
   <style>
     /* ==== Design tokens & reset ==== */
@@ -71,12 +71,61 @@
       .timeline { margin-left: 0; }
       .timeline__item { grid-template-columns: 1fr; }
     }
+    /* === Material baseline (neutral) === */
+:root{
+  --md-surface:#fff; --md-surface-variant:#f7f7f7; --md-on-surface:#111;
+  --md-outline:#e0e0e0; --md-radius:12px;
+  --md-elev-1:0 1px 2px rgba(0,0,0,.06),0 1px 3px rgba(0,0,0,.04);
+  --md-elev-2:0 2px 6px rgba(0,0,0,.10),0 6px 12px rgba(0,0,0,.06);
+  --md-duration:200ms; --md-ease:cubic-bezier(.2,.0,0,1);
+}
+
+/* App bar elevation */
+.site-header{ box-shadow: var(--md-elev-1); background:var(--md-surface); }
+
+/* Section heading（オーバーライン風） */
+.section h2{ letter-spacing:.12em; font-weight:800; font-size:.92rem; color:#333; margin-bottom:18px; }
+
+/* Card = Material surface + elevation + hover raise */
+.md-card{
+  background:var(--md-surface); border:1px solid var(--md-outline);
+  border-radius:var(--md-radius); box-shadow:var(--md-elev-1);
+  transition: box-shadow var(--md-duration) var(--md-ease),
+              transform var(--md-duration) var(--md-ease);
+}
+.md-card:hover{ box-shadow:var(--md-elev-2); transform: translateY(-1px); }
+
+/* Button = state layer + focus visible */
+.md-btn{
+  position:relative; overflow:hidden; border-radius:10px;
+  border:1px solid var(--md-outline); padding:8px 12px; font-weight:600;
+  transition: transform var(--md-duration) var(--md-ease);
+}
+.md-btn:active{ transform: translateY(1px); }
+.md-btn:focus-visible{ outline:2px solid #999; outline-offset:2px; }
+
+/* Ripple 対象 */
+.md-ripple, .site-nav a, .md-btn{ position:relative; overflow:hidden; }
+
+/* Assist chips（SKILLS） */
+.tags li{
+  border:1px solid var(--md-outline); border-radius:999px; padding:6px 12px;
+  background:var(--md-surface-variant);
+}
+
+/* Ripple 要素 */
+.ripple{
+  position:absolute; border-radius:50%; background: currentColor; opacity:.14;
+  transform: scale(0); pointer-events:none; animation: ripple .6s ease-out forwards;
+}
+@keyframes ripple{ to{ transform: scale(2.5); opacity:0; } }
+
   </style>
 </head>
 <body>
   <header class="site-header">
     <div class="container">
-      <a class="brand" href="#top">YOUR NAME</a>
+      <a class="brand" href="#top">Yuki Okita</a>
       <nav class="site-nav" aria-label="Primary">
         <a href="#profile">PROFILE</a>
         <a href="#achievements">ACHIEVEMENTS</a>
@@ -95,7 +144,7 @@
       <p class="hero__subtitle">食品メーカーの製造エンジニア／DX推進。OEE、可視化、アプリ内製。</p>
       <div class="social">
         <a href="https://x.com/yourid" target="_blank" rel="noopener" aria-label="X">X</a>
-        <a href="https://www.linkedin.com/in/yourid" target="_blank" rel="noopener" aria-label="LinkedIn">LinkedIn</a>
+        <a href="https://www.linkedin.com/in/yuki-0kita-031253257/" target="_blank" rel="noopener" aria-label="LinkedIn">LinkedIn</a>
         <a href="https://github.com/yourid" target="_blank" rel="noopener" aria-label="GitHub">GitHub</a>
         <a href="https://note.com/yourid" target="_blank" rel="noopener" aria-label="note">note</a>
       </div>
@@ -181,7 +230,10 @@
 
   <footer class="site-footer">
     <div class="container">
-      <small>© <span id="year"></span> YOUR NAME</small>
+      <small>
+  © <span id="year"></span> Yuki Okit / 本サイトの記載は個人の見解であり、所属組織の公式見解ではありません。
+</small>
+
     </div>
   </footer>
 
@@ -216,6 +268,24 @@
 
     // Year
     document.getElementById('year').textContent = new Date().getFullYear();
+    // Material-like ripple for buttons/links
+(function attachRipples(){
+  const targets = document.querySelectorAll('.md-btn, .site-nav a, .card .btn');
+  targets.forEach(el=>{
+    el.addEventListener('pointerdown', e=>{
+      const rect = el.getBoundingClientRect();
+      const d = Math.max(rect.width, rect.height);
+      const span = document.createElement('span');
+      span.className = 'ripple';
+      span.style.width = span.style.height = d + 'px';
+      span.style.left = (e.clientX - rect.left - d/2) + 'px';
+      span.style.top  = (e.clientY - rect.top  - d/2) + 'px';
+      el.appendChild(span);
+      setTimeout(()=>span.remove(), 650);
+    });
+  });
+})();
+
   </script>
 </body>
 </html>
