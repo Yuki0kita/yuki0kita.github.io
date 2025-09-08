@@ -412,6 +412,98 @@
       c.classList.add('reveal');
       io.observe(c);
     });
+
+    // 動的ポケモン機能
+    function initPokemon() {
+      const floatingPokemon = document.querySelectorAll('.floating-pokemon');
+      
+      // ランダムな初期位置設定
+      floatingPokemon.forEach((pokemon, index) => {
+        const randomDelay = Math.random() * 5;
+        pokemon.style.animationDelay = randomDelay + 's';
+        
+        // クリックイベント
+        pokemon.addEventListener('click', function(e) {
+          e.stopPropagation();
+          createSparks(e.target);
+          
+          // 一時的にアクティブ状態
+          this.classList.add('active');
+          setTimeout(() => {
+            this.classList.remove('active');
+          }, 2000);
+        });
+        
+        // ランダムに位置を変更
+        setInterval(() => {
+          if (!pokemon.matches(':hover')) {
+            moveRandomly(pokemon);
+          }
+        }, 8000 + Math.random() * 4000);
+      });
+    }
+
+    function moveRandomly(pokemon) {
+      const maxX = window.innerWidth - 50;
+      const maxY = window.innerHeight - 50;
+      const newX = Math.random() * maxX;
+      const newY = Math.random() * maxY;
+      
+      pokemon.style.transition = 'all 3s ease-in-out';
+      pokemon.style.left = newX + 'px';
+      pokemon.style.top = newY + 'px';
+    }
+
+    function createSparks(element) {
+      const rect = element.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      
+      for (let i = 0; i < 5; i++) {
+        const spark = document.createElement('div');
+        spark.className = 'pokemon-spark';
+        spark.style.left = centerX + 'px';
+        spark.style.top = centerY + 'px';
+        spark.style.animation = `spark 0.6s ease-out ${i * 0.1}s forwards`;
+        
+        const angle = (Math.PI * 2 * i) / 5;
+        const distance = 30;
+        spark.style.setProperty('--end-x', Math.cos(angle) * distance + 'px');
+        spark.style.setProperty('--end-y', Math.sin(angle) * distance + 'px');
+        
+        document.body.appendChild(spark);
+        
+        setTimeout(() => {
+          spark.remove();
+        }, 800);
+      }
+    }
+
+    // マウス追従効果
+    document.addEventListener('mousemove', (e) => {
+      const pokemon = document.querySelectorAll('.floating-pokemon');
+      pokemon.forEach((p, index) => {
+        const rect = p.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        
+        const distance = Math.sqrt(
+          Math.pow(e.clientX - centerX, 2) + 
+          Math.pow(e.clientY - centerY, 2)
+        );
+        
+        if (distance < 100) {
+          p.style.pointerEvents = 'auto';
+          p.classList.add('active');
+        } else {
+          p.style.pointerEvents = 'none';
+          p.classList.remove('active');
+        }
+      });
+    });
+
+    // 初期化
+    initPokemon();
   </script>
 </body>
 </html>
