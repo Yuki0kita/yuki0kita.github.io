@@ -1,509 +1,1094 @@
-<!doctype html>
-<html lang="ja">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ポートフォリオ | Yuki Okita</title>
-  <meta name="description" content="製造DX／データ活用／内製開発のポートフォリオ" />
-  <style>
-    /* ==== Design tokens & reset ==== */
-    * { box-sizing: border-box; }
-    :root {
-      /* layout */
-      --maxw: 980px; --gap: 16px; --radius: 10px; --border: 1px solid #e5e5e5;
-      /* Material-like */
-      --md-surface:#fff; --md-surface-variant:#f7f7f7; --md-on-surface:#111;
-      --md-outline:#e0e0e0; --md-radius:12px;
-      --md-elev-1:0 1px 2px rgba(0,0,0,.06),0 1px 3px rgba(0,0,0,.04);
-      --md-elev-2:0 2px 6px rgba(0,0,0,.10),0 6px 12px rgba(0,0,0,.06);
-      --md-duration:200ms; --md-ease:cubic-bezier(.2,.0,0,1);
-      /* 図鑑風カラー */
-      --skill-frontend: #e3f2fd; --skill-backend: #f3e5f5; 
-      --skill-data: #e8f5e8; --skill-manufacturing: #fff3e0;
+import React, { useState, useEffect } from 'react';
+import { 
+  Share2, Github, Twitter, RotateCcw, Code2, Brain, Zap, Heart, Star, Sparkles,
+  Shield, Coffee, Building, Workflow, BookOpen, Layers, Building2, RotateCw,
+  Cpu, Rocket, Globe, Gem, Feather, Eye, FileText, Palette, Circle, Grid,
+  Server, Wind, Type, Repeat, Gauge
+} from 'lucide-react';
+
+// 診断質問データ
+const questions = [
+  // IO軸（Input型 / Output型）
+  { id: 1, text: "新しい技術を学ぶとき、まずドキュメントを読み込んでから実装する", axis: "IO", weight: 1 },
+  { id: 2, text: "アイデアが浮かんだら、すぐにコードを書いて試したくなる", axis: "IO", weight: -1 },
+  { id: 3, text: "プロジェクトを始める前に、要件や仕様を詳しく聞きたい", axis: "IO", weight: 1 },
+  { id: 4, text: "他の人に自分の考えやコードを説明することが多い", axis: "IO", weight: -1 },
+  { id: 5, text: "集中して深く考える時間を大切にする", axis: "IO", weight: 1 },
+  
+  // Data軸（Literal型 / Abstract型）
+  { id: 6, text: "データベース設計では、正規化や整合性を重視する", axis: "Data", weight: 1 },
+  { id: 7, text: "システム全体のアーキテクチャを考えるのが好きだ", axis: "Data", weight: -1 },
+  { id: 8, text: "コードレビューでは、実装の詳細をしっかり確認する", axis: "Data", weight: 1 },
+  { id: 9, text: "将来の拡張性を考えた抽象的な設計を好む", axis: "Data", weight: -1 },
+  { id: 10, text: "具体的な例やサンプルコードがあると理解しやすい", axis: "Data", weight: 1 },
+  
+  // Logic軸（Strict型 / Flexible型）
+  { id: 11, text: "コードの動作効率やパフォーマンスを最優先に考える", axis: "Logic", weight: 1 },
+  { id: 12, text: "チームメンバーの意見や感情を大切にして開発を進める", axis: "Logic", weight: -1 },
+  { id: 13, text: "バグを見つけたら、論理的に原因を特定してから修正する", axis: "Logic", weight: 1 },
+  { id: 14, text: "ユーザーの体験や使いやすさを重視してUIを設計する", axis: "Logic", weight: -1 },
+  { id: 15, text: "技術選定では、客観的な指標とベンチマークを重視する", axis: "Logic", weight: 1 },
+  
+  // Process軸（Structured型 / Adaptive型）
+  { id: 16, text: "プロジェクトでは計画を立ててからコーディングを始める", axis: "Process", weight: 1 },
+  { id: 17, text: "アジャイルな開発で、状況に応じて柔軟に方針を変更する", axis: "Process", weight: -1 },
+  { id: 18, text: "コーディング規約やルールをしっかり守る", axis: "Process", weight: 1 },
+  { id: 19, text: "新しいアイデアが浮かんだら、計画を変更してでも試したい", axis: "Process", weight: -1 },
+  { id: 20, text: "デッドラインを守るために、段階的にタスクを進める", axis: "Process", weight: 1 }
+];
+
+// キャラクターコンポーネント
+const CharacterAvatar = ({ character, size = "large" }) => {
+  const sizeClasses = {
+    small: "w-16 h-16",
+    medium: "w-24 h-24", 
+    large: "w-32 h-32"
+  };
+
+  const characterDesigns = {
+    "ラスティ": { // Rust - 錆びた金属
+      body: "#CD853F", accent: "#8B4513", hat: "#A0522D", accessory: "#DAA520"
+    },
+    "ゴーファー": { // Go - ホリネズミ
+      body: "#87CEEB", accent: "#4682B4", hat: "#2F4F4F", accessory: "#B0E0E6"
+    },
+    "ジャヴァ": { // Java - コーヒー
+      body: "#DEB887", accent: "#8B4513", hat: "#654321", accessory: "#F4A460"
+    },
+    "パイソン": { // Python - ヘビ
+      body: "#228B22", accent: "#006400", hat: "#2E8B57", accessory: "#90EE90"
+    },
+    "ハスケル": { // Haskell - 数学者
+      body: "#9370DB", accent: "#4B0082", hat: "#2F2F2F", accessory: "#E6E6FA"
+    },
+    "スカラ": { // Scala - 階段
+      body: "#DC143C", accent: "#B22222", hat: "#8B0000", accessory: "#FFB6C1"
+    },
+    "シーシャープ": { // C# - 企業的
+      body: "#4169E1", accent: "#191970", hat: "#000080", accessory: "#E0E6FF"
+    },
+    "クロージャ": { // Clojure - 括弧
+      body: "#008B8B", accent: "#2F4F4F", hat: "#006666", accessory: "#AFEEEE"
+    },
+    "シーちゃん": { // C - 電光石火
+      body: "#FFD700", accent: "#FFA500", hat: "#FF8C00", accessory: "#FFFFE0"
+    },
+    "プラプラ": { // C++ - ロケット
+      body: "#4169E1", accent: "#000080", hat: "#191970", accessory: "#E6E6FA"
+    },
+    "ピーちゃん": { // PHP - Web
+      body: "#9932CC", accent: "#8A2BE2", hat: "#4B0082", accessory: "#E6E6FA"
+    },
+    "ルビー": { // Ruby - 宝石
+      body: "#DC143C", accent: "#8B0000", hat: "#B22222", accessory: "#FFB6C1"
+    },
+    "コトリン": { // Kotlin - 鳥
+      body: "#FF6347", accent: "#FF4500", hat: "#8B4513", accessory: "#FFE4E1"
+    },
+    "スウィフト": { // Swift - 速い鳥
+      body: "#FF4500", accent: "#FF6347", hat: "#FF8C00", accessory: "#FFEFD5"
+    },
+    "タイプくん": { // TypeScript - 型
+      body: "#4682B4", accent: "#191970", hat: "#000080", accessory: "#E0FFFF"
+    },
+    "ジャバスク": { // JavaScript - カラフル
+      body: "#FFD700", accent: "#FF69B4", hat: "#FF1493", accessory: "#FFFFE0"
     }
-    html, body { height: 100%; }
-    body {
-      margin: 0;
-      font-family: system-ui,-apple-system,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
-      color: #111; line-height: 1.7; background:#fff;
-    }
+  };
 
-    /* ==== Header ==== */
-    .site-header { position: sticky; top: 0; z-index: 10; background: var(--md-surface); border-bottom: var(--border); box-shadow: var(--md-elev-1); }
-    .site-header .container {
-      display: flex; align-items: center; justify-content: space-between;
-      max-width: var(--maxw); margin: 0 auto; padding: 10px 16px;
-    }
-    .brand { font-weight: 700; letter-spacing: .08em; text-decoration: none; color: inherit; }
-    .site-nav a { text-decoration: none; color: inherit; margin-left: 16px; font-size: .95rem; position:relative; overflow:hidden; }
-    .site-nav a:hover { text-decoration: underline; }
-
-    /* ==== Hero ==== */
-    .hero { padding: 80px 16px 64px; border-bottom: var(--border); }
-    .hero__inner { max-width: var(--maxw); margin: 0 auto; text-align: center; }
-    .hero__title { font-size: clamp(24px, 6vw, 40px); letter-spacing: .04em; margin: 0 0 8px; }
-    .hero__subtitle { margin: 0 auto 16px; max-width: 720px; color: #444; }
-    .social a { display: inline-block; margin: 0 8px; text-decoration: none; color: inherit; font-weight: 600; position:relative; overflow:hidden; }
-    .to-sections { display: inline-block; margin-top: 24px; text-decoration: none; color: inherit; }
-    .typing::after { content: "|"; animation: caret 1s steps(1) infinite; margin-left: 2px; }
-    @keyframes caret { 50% { opacity: 0; } }
-
-    /* ==== Sections ==== */
-    .section { padding: 56px 16px; }
-    .section > .container { max-width: var(--maxw); margin: 0 auto; }
-    .section h2 { letter-spacing: .12em; font-size: 0.95rem; font-weight: 800; margin: 0 0 16px; color:#333; }
-
-    /* ==== Cards ==== */
-    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-    .card { border: var(--border); border-radius: var(--radius); padding: 16px; background:var(--md-surface); position: relative; }
-    .md-card{ border:1px solid var(--md-outline); border-radius:var(--md-radius); box-shadow:var(--md-elev-1);
-      transition: box-shadow var(--md-duration) var(--md-ease), transform var(--md-duration) var(--md-ease); }
-    .md-card:hover{ box-shadow:var(--md-elev-2); transform: translateY(-1px); }
-    .card h3 { margin: 0 0 8px; font-size: 1.05rem; }
-    .card p { color: #333; }
-    .btn { display: inline-block; padding: 8px 12px; border: var(--border); border-radius: 10px; text-decoration: none; color: inherit; font-weight: 600; }
-    .md-btn{ border:1px solid var(--md-outline); position:relative; overflow:hidden; transition: transform var(--md-duration) var(--md-ease); }
-    .md-btn:active{ transform: translateY(1px); }
-    .md-btn:focus-visible{ outline:2px solid #999; outline-offset:2px; }
-
-    /* ==== 図鑑風番号 ==== */
-    .card-number {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      background: #f5f5f5;
-      color: #666;
-      font-size: 0.75rem;
-      font-weight: 700;
-      padding: 4px 8px;
-      border-radius: 12px;
-      letter-spacing: 0.5px;
-    }
-
-    /* ==== Tags / Skills ==== */
-    .tags { display: flex; gap: 8px; padding: 0; margin: 0; list-style: none; flex-wrap: wrap; }
-    .tags li { border:1px solid var(--md-outline); border-radius: 999px; padding: 6px 12px; font-size: .95rem; background:var(--md-surface-variant); transition: all var(--md-duration) ease; }
-    .tags li:hover { transform: translateY(-1px); box-shadow: var(--md-elev-1); }
-
-    /* スキルカテゴリ別色分け（控えめ） */
-    .tags li.frontend { background: var(--skill-frontend); border-color: #bbdefb; }
-    .tags li.backend { background: var(--skill-backend); border-color: #e1bee7; }
-    .tags li.data { background: var(--skill-data); border-color: #c8e6c9; }
-    .tags li.manufacturing { background: var(--skill-manufacturing); border-color: #ffe0b2; }
-
-    /* ==== Timeline ==== */
-    .timeline { border-left: var(--border); margin-left: 8px; }
-    .timeline__item { display: grid; grid-template-columns: 140px 1fr; gap: 12px; padding: 12px 0 12px 12px; }
-    .timeline__year { color: #666; font-weight: 600; }
-    .timeline__body h3 { margin: 0 0 6px; font-size: 1.05rem; }
-    .timeline__body ul { margin: 0; padding-left: 18px; }
-
-    /* ==== Footer ==== */
-    .site-footer { border-top: var(--border); padding: 24px 16px; text-align: center; color: #555; }
-
-    /* ==== Ripple / motion ==== */
-    .ripple{ position:absolute; border-radius:50%; background: currentColor; opacity:.14;
-      transform: scale(0); pointer-events:none; animation: ripple .6s ease-out forwards; }
-    @keyframes ripple{ to{ transform: scale(2.5); opacity:0; } }
-    .card .more{ max-height:0; overflow:hidden; transition:max-height 220ms ease; }
-    .card.is-open .more{ max-height: 320px; }
-    .card.reveal{ opacity:0; transform: translateY(8px); transition: opacity .4s ease, transform .4s ease; }
-    .card.reveal.is-visible{ opacity:1; transform: none; }
-
-    /* ==== 図鑑風のグリッド調整 ==== */
-    .skills-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 12px;
-      margin-top: 16px;
-    }
-
-    .skill-item {
-      background: var(--md-surface);
-      border: 1px solid var(--md-outline);
-      border-radius: var(--md-radius);
-      padding: 16px;
-      text-align: center;
-      transition: all var(--md-duration) ease;
-      position: relative;
-    }
-
-    .skill-item:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--md-elev-2);
-    }
-
-    .skill-item .skill-number {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      font-size: 0.7rem;
-      color: #999;
-      font-weight: 700;
-    }
-
-    .skill-icon {
-      font-size: 1.5rem;
-      margin-bottom: 8px;
-      display: block;
-    }
-
-    .skill-name {
-      font-weight: 600;
-      color: #333;
-      font-size: 0.9rem;
-    }
-
-    /* ==== Responsive ==== */
-    @media (max-width: 900px) { 
-      .cards { grid-template-columns: 1fr 1fr; } 
-      .skills-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
-    }
-    @media (max-width: 600px) {
-      .site-nav a { margin-left: 12px; font-size: .9rem; }
-      .cards { grid-template-columns: 1fr; }
-      .skills-grid { grid-template-columns: repeat(2, 1fr); }
-      .timeline { margin-left: 0; }
-      .timeline__item { grid-template-columns: 1fr; }
-    }
-  </style>
-</head>
-<body>
-  <header class="site-header">
-    <div class="container">
-      <a class="brand" href="#top">Yuki Okita</a>
-      <nav class="site-nav" aria-label="Primary">
-        <a href="#profile">PROFILE</a>
-        <a href="#achievements">ACHIEVEMENTS</a>
-        <a href="#skills">SKILLS</a>
-        <a href="#experience">EXPERIENCE</a>
-        <a href="#education">EDUCATION</a>
-      </nav>
-    </div>
-  </header>
-
-  <section id="top" class="hero" aria-label="Hero">
-    <div class="container hero__inner">
-      <h1 class="hero__title">
-        <span class="typing" data-text='["MANUFACTURING ENGINEER","DX / DATA / APP","MAKE IT WORK, MAKE IT RIGHT"]'></span>
-      </h1>
-      <div class="social">
-        <a href="https://x.com/yourid" target="_blank" rel="noopener" aria-label="X">X</a>
-        <a href="https://www.linkedin.com/in/yuki-0kita-031253257/" target="_blank" rel="noopener" aria-label="LinkedIn">LinkedIn</a>
-        <a href="https://github.com/yourid" target="_blank" rel="noopener" aria-label="GitHub">GitHub</a>
-        <a href="https://note.com/yourid" target="_blank" rel="noopener" aria-label="note">note</a>
-      </div>
-      <a class="to-sections" href="#profile" aria-label="Scroll to profile">▼</a>
-    </div>
-  </section>
-
-  <main id="content">
-    <!-- PROFILE -->
-    <section id="profile" class="section">
-      <div class="container">
-        <h2>PROFILE</h2>
-        <p>
-          製造業における現場課題の抽出から要件定義、システム設計・開発・運用まで 一貫して担当し、データドリブンな意思決定支援に取り組んでいます。
-        </p>
-      </div>
-    </section>
-
-    <!-- ACHIEVEMENTS -->
-    <section id="achievements" class="section">
-      <div class="container">
-        <h2>ACHIEVEMENTS</h2>
-        <div class="cards">
-          <article class="card md-card">
-            <div class="card-number">#001</div>
-            <h3>プロセス最適化システム</h3>
-            <p>
-              機械学習を活用した製造パラメータの自動最適化
-            </p>
-            <a class="btn md-btn js-toggle" href="#" aria-expanded="false">詳細</a>
-            <div class="more" hidden>
-              <ul>
-                <li>候補生成→現場検証→標準化のサイクルを内製で運用</li>
-              </ul>
-            </div>
-          </article>
-
-          <article class="card md-card">
-            <div class="card-number">#002</div>
-            <h3>リアルタイム監視ダッシュボード</h3>
-            <p>
-              IoT センサーデータによる設備状態の可視化と傾向監視
-            </p>
-            <a class="btn md-btn js-toggle" href="#" aria-expanded="false">詳細</a>
-            <div class="more" hidden>
-              <ul>
-                <li>主要KPIの集約表示／しきい値超過アラート／トレンド把握</li>
-              </ul>
-            </div>
-          </article>
-
-          <article class="card md-card">
-            <div class="card-number">#003</div>
-            <h3>データ統合プラットフォーム</h3>
-            <p>
-              複数システムの記録を統合し、意思決定を高速化。
-            </p>
-            <a class="btn md-btn js-toggle" href="#" aria-expanded="false">詳細</a>
-            <div class="more" hidden>
-              <ul>
-                <li>ログの紐づけ・検索</li>
-              </ul>
-            </div>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <!-- SKILLS -->
-    <section id="skills" class="section">
-      <div class="container">
-        <h2>SKILLS</h2>
-        <div class="skills-grid">
-          <div class="skill-item frontend">
-            <div class="skill-number">#01</div>
-            <span class="skill-icon">🖥️</span>
-            <div class="skill-name">Frontend</div>
-          </div>
-          <div class="skill-item backend">
-            <div class="skill-number">#02</div>
-            <span class="skill-icon">⚙️</span>
-            <div class="skill-name">Python</div>
-          </div>
-          <div class="skill-item data">
-            <div class="skill-number">#03</div>
-            <span class="skill-icon">📊</span>
-            <div class="skill-name">Data Analysis</div>
-          </div>
-          <div class="skill-item manufacturing">
-            <div class="skill-number">#04</div>
-            <span class="skill-icon">🏭</span>
-            <div class="skill-name">Manufacturing</div>
-          </div>
-          <div class="skill-item manufacturing">
-            <div class="skill-number">#05</div>
-            <span class="skill-icon">📡</span>
-            <div class="skill-name">IoT</div>
-          </div>
-          <div class="skill-item data">
-            <div class="skill-number">#06</div>
-            <span class="skill-icon">🤖</span>
-            <div class="skill-name">Machine Learning</div>
-          </div>
-        </div>
-        
-        <p style="margin-top: 24px; color: #666; font-size: 0.9rem;">
-          その他: Streamlit, AWS, Docker, PLC, Power BI など
-        </p>
-      </div>
-    </section>
-
-    <!-- EXPERIENCE -->
-    <section id="experience" class="section">
-      <div class="container">
-        <h2>EXPERIENCE</h2>
-        <div class="timeline">
-          <div class="timeline__item reveal">
-            <div class="timeline__year">2023 – Present</div>
-            <div class="timeline__body">
-              <h3>DX Engineer</h3>
-              <ul>
-                <li>大手食品メーカーにてデジタル変革プロジェクトを推進</li>
-                <li>データ基盤の整備と業務プロセスの最適化を横断的にリード</li>
-                <li>内製ツールの企画・実装・標準化、現場運用の定着支援</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- EDUCATION -->
-    <section id="education" class="section">
-      <div class="container">
-        <h2>EDUCATION</h2>
-        <p>background・licenses</p>
-      </div>
-    </section>
-  </main>
-
-  <footer class="site-footer">
-    <div class="container">
-      <small>
-        © <span id="year"></span> Yuki Okita / 本サイトの記載は個人の見解であり、所属組織の公式見解ではありません。
-      </small>
-    </div>
-  </footer>
-
-  <script>
-    // Smooth anchor scroll
-    document.querySelectorAll('a[href^="#"]').forEach(a => {
-      a.addEventListener('click', e => {
-        const id = a.getAttribute('href').slice(1);
-        const el = document.getElementById(id);
-        if (el) { e.preventDefault(); el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
-      });
-    });
-
-    // Typing effect
-    const el = document.querySelector('.typing');
-    if (el) {
-      const items = JSON.parse(el.dataset.text || '[]');
-      let i = 0, j = 0, deleting = false;
-      const tick = () => {
-        const word = items[i % items.length] || "";
-        if (!deleting) {
-          el.textContent = word.slice(0, j++);
-          if (j > word.length + 10) deleting = true;
-        } else {
-          el.textContent = word.slice(0, j--);
-          if (j <= 0) { deleting = false; i++; }
-        }
-        setTimeout(tick, deleting ? 40 : 80);
-      };
-      tick();
-    }
-
-    // Year
-    document.getElementById('year').textContent = new Date().getFullYear();
-
-    // Ripple for buttons/links
-    const rippleTargets = document.querySelectorAll('.md-btn, .site-nav a, .social a, .card .btn');
-    rippleTargets.forEach(el=>{
-      el.addEventListener('pointerdown', e=>{
-        const rect = el.getBoundingClientRect();
-        const d = Math.max(rect.width, rect.height);
-        const span = document.createElement('span');
-        span.className = 'ripple';
-        span.style.width = span.style.height = d + 'px';
-        span.style.left = (e.clientX - rect.left - d/2) + 'px';
-        span.style.top  = (e.clientY - rect.top  - d/2) + 'px';
-        el.appendChild(span);
-        setTimeout(()=>span.remove(), 650);
-      });
-    });
-
-    // 詳細トグル
-    document.querySelectorAll('.cards .js-toggle').forEach(btn=>{
-      btn.addEventListener('click', e=>{
-        e.preventDefault();
-        const card = btn.closest('.card');
-        const more = card.querySelector('.more');
-        const open = card.classList.toggle('is-open');
-        btn.setAttribute('aria-expanded', String(open));
-        if (more) { open ? more.removeAttribute('hidden') : more.setAttribute('hidden', ''); }
-      });
-    });
-
-    // カードのフェードイン
-    const io = new IntersectionObserver((entries)=>{
-      entries.forEach(en=>{
-        if (en.isIntersecting) {
-          en.target.classList.add('is-visible');
-          io.unobserve(en.target);
-        }
-      });
-    }, { threshold: 0.2 });
-
-    document.querySelectorAll('.cards .card, .skill-item').forEach(c=>{
-      c.classList.add('reveal');
-      io.observe(c);
-    });
-
-    // 動的ポケモン機能
-    function initPokemon() {
-      const floatingPokemon = document.querySelectorAll('.floating-pokemon');
-      
-      // ランダムな初期位置設定
-      floatingPokemon.forEach((pokemon, index) => {
-        const randomDelay = Math.random() * 5;
-        pokemon.style.animationDelay = randomDelay + 's';
-        
-        // クリックイベント
-        pokemon.addEventListener('click', function(e) {
-          e.stopPropagation();
-          createSparks(e.target);
-          
-          // 一時的にアクティブ状態
-          this.classList.add('active');
-          setTimeout(() => {
-            this.classList.remove('active');
-          }, 2000);
-        });
-        
-        // ランダムに位置を変更
-        setInterval(() => {
-          if (!pokemon.matches(':hover')) {
-            moveRandomly(pokemon);
-          }
-        }, 8000 + Math.random() * 4000);
-      });
-    }
-
-    function moveRandomly(pokemon) {
-      const maxX = window.innerWidth - 50;
-      const maxY = window.innerHeight - 50;
-      const newX = Math.random() * maxX;
-      const newY = Math.random() * maxY;
-      
-      pokemon.style.transition = 'all 3s ease-in-out';
-      pokemon.style.left = newX + 'px';
-      pokemon.style.top = newY + 'px';
-    }
-
-    function createSparks(element) {
-      const rect = element.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-      
-      for (let i = 0; i < 5; i++) {
-        const spark = document.createElement('div');
-        spark.className = 'pokemon-spark';
-        spark.style.left = centerX + 'px';
-        spark.style.top = centerY + 'px';
-        spark.style.animation = `spark 0.6s ease-out ${i * 0.1}s forwards`;
-        
-        const angle = (Math.PI * 2 * i) / 5;
-        const distance = 30;
-        spark.style.setProperty('--end-x', Math.cos(angle) * distance + 'px');
-        spark.style.setProperty('--end-y', Math.sin(angle) * distance + 'px');
-        
-        document.body.appendChild(spark);
-        
-        setTimeout(() => {
-          spark.remove();
-        }, 800);
-      }
-    }
-
-    // マウス追従効果
-    document.addEventListener('mousemove', (e) => {
-      const pokemon = document.querySelectorAll('.floating-pokemon');
-      pokemon.forEach((p, index) => {
-        const rect = p.getBoundingClientRect();
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
-        
-        const distance = Math.sqrt(
-          Math.pow(e.clientX - centerX, 2) + 
-          Math.pow(e.clientY - centerY, 2)
+  const colors = characterDesigns[character.name] || characterDesigns["パイソン"];
+  
+  // キャラクター別の特徴的な要素を定義
+  const renderCharacterFeatures = () => {
+    switch(character.name) {
+      case "パイソン": // ヘビの特徴
+        return (
+          <>
+            {/* ヘビの鱗模様 */}
+            <g opacity="0.3">
+              <ellipse cx="45" cy="50" rx="3" ry="2" fill="#006400"/>
+              <ellipse cx="55" cy="48" rx="3" ry="2" fill="#006400"/>
+              <ellipse cx="65" cy="50" rx="3" ry="2" fill="#006400"/>
+              <ellipse cx="75" cy="48" rx="3" ry="2" fill="#006400"/>
+            </g>
+            {/* ヘビの目（縦瞳） */}
+            <ellipse cx="50" cy="60" rx="2" ry="4" fill="#2F4F4F"/>
+            <ellipse cx="70" cy="60" rx="2" ry="4" fill="#2F4F4F"/>
+            <ellipse cx="50" cy="60" rx="0.5" ry="3" fill="#FFD700"/>
+            <ellipse cx="70" cy="60" rx="0.5" ry="3" fill="#FFD700"/>
+            {/* 舌 */}
+            <path d="M 58 78 L 60 82 L 62 78" stroke="#FF0000" strokeWidth="1" fill="none"/>
+          </>
         );
-        
-        if (distance < 100) {
-          p.style.pointerEvents = 'auto';
-          p.classList.add('active');
-        } else {
-          p.style.pointerEvents = 'none';
-          p.classList.remove('active');
-        }
-      });
-    });
+      
+      case "ラスティ": // 錆びた金属
+        return (
+          <>
+            {/* 錆びた模様 */}
+            <g opacity="0.4">
+              <circle cx="45" cy="55" r="2" fill="#8B4513"/>
+              <circle cx="75" cy="58" r="1.5" fill="#A0522D"/>
+              <circle cx="52" cy="72" r="1" fill="#CD853F"/>
+              <circle cx="68" cy="72" r="1" fill="#8B4513"/>
+            </g>
+            {/* 金属の光沢 */}
+            <ellipse cx="40" cy="45" rx="8" ry="3" fill="#DAA520" opacity="0.6"/>
+            {/* ヘルメット */}
+            <rect x="45" y="30" width="30" height="15" fill="#A0522D" rx="7"/>
+            <rect x="47" y="32" width="26" height="11" fill="#CD853F" rx="5"/>
+          </>
+        );
 
-    // 初期化
-    initPokemon();
-  </script>
-</body>
-</html>
+      case "ジャヴァ": // コーヒー
+        return (
+          <>
+            {/* コーヒーカップ */}
+            <ellipse cx="85" cy="55" rx="8" ry="10" fill="#8B4513"/>
+            <ellipse cx="85" cy="52" rx="6" ry="8" fill="#DEB887"/>
+            <ellipse cx="85" cy="50" rx="5" ry="2" fill="#654321"/>
+            {/* 湯気 */}
+            <path d="M 80 45 Q 82 40 80 38 Q 78 36 80 34" stroke="#E6E6E6" strokeWidth="1" fill="none" opacity="0.7"/>
+            <path d="M 85 45 Q 87 40 85 38 Q 83 36 85 34" stroke="#E6E6E6" strokeWidth="1" fill="none" opacity="0.7"/>
+            <path d="M 90 45 Q 92 40 90 38 Q 88 36 90 34" stroke="#E6E6E6" strokeWidth="1" fill="none" opacity="0.7"/>
+            {/* コーヒー豆模様 */}
+            <ellipse cx="48" cy="52" rx="2" ry="3" fill="#654321"/>
+            <path d="M 48 50 L 48 54" stroke="#8B4513" strokeWidth="0.5"/>
+            <ellipse cx="72" cy="55" rx="2" ry="3" fill="#654321"/>
+            <path d="M 72 53 L 72 57" stroke="#8B4513" strokeWidth="0.5"/>
+          </>
+        );
+
+      case "ゴーファー": // ホリネズミ
+        return (
+          <>
+            {/* 大きな前歯 */}
+            <rect x="57" y="70" width="2" height="6" fill="#FFFFFF" rx="1"/>
+            <rect x="61" y="70" width="2" height="6" fill="#FFFFFF" rx="1"/>
+            {/* 大きな耳 */}
+            <ellipse cx="35" cy="45" rx="8" ry="12" fill={colors.hat}/>
+            <ellipse cx="85" cy="45" rx="8" ry="12" fill={colors.hat}/>
+            <ellipse cx="35" cy="45" rx="5" ry="8" fill="#FFB6C1"/>
+            <ellipse cx="85" cy="45" rx="5" ry="8" fill="#FFB6C1"/>
+            {/* ひげ */}
+            <path d="M 35 68 L 25 66" stroke="#2F4F4F" strokeWidth="1"/>
+            <path d="M 35 72 L 25 72" stroke="#2F4F4F" strokeWidth="1"/>
+            <path d="M 85 68 L 95 66" stroke="#2F4F4F" strokeWidth="1"/>
+            <path d="M 85 72 L 95 72" stroke="#2F4F4F" strokeWidth="1"/>
+          </>
+        );
+
+      case "ルビー": // 宝石
+        return (
+          <>
+            {/* 宝石カット */}
+            <polygon points="60,30 50,40 50,50 60,45 70,50 70,40" fill="#FF69B4" opacity="0.7"/>
+            <polygon points="60,30 55,35 60,40 65,35" fill="#FFB6C1"/>
+            {/* キラキラ */}
+            <g className="animate-pulse">
+              <polygon points="40,35 42,37 40,39 38,37" fill="#FFD700"/>
+              <polygon points="80,40 82,42 80,44 78,42" fill="#FFD700"/>
+              <polygon points="45,75 47,77 45,79 43,77" fill="#FFD700"/>
+              <polygon points="75,75 77,77 75,79 73,77" fill="#FFD700"/>
+            </g>
+            {/* 宝石の輝き */}
+            <ellipse cx="60" cy="37" rx="15" ry="3" fill="#FFFFFF" opacity="0.4"/>
+          </>
+        );
+
+      case "ハスケル": // 数学者
+        return (
+          <>
+            {/* 数式 */}
+            <text x="25" y="45" fontSize="8" fill="#4B0082" opacity="0.6">λ</text>
+            <text x="90" y="50" fontSize="6" fill="#4B0082" opacity="0.6">∀</text>
+            <text x="35" y="85" fontSize="6" fill="#4B0082" opacity="0.6">→</text>
+            <text x="85" y="85" fontSize="6" fill="#4B0082" opacity="0.6">∘</text>
+            {/* 学者の帽子 */}
+            <polygon points="45,25 75,25 70,35 50,35" fill="#2F2F2F"/>
+            <ellipse cx="60" cy="35" rx="15" ry="3" fill="#2F2F2F"/>
+            {/* 眼鏡 */}
+            <circle cx="50" cy="60" r="8" fill="none" stroke="#2F2F2F" strokeWidth="1"/>
+            <circle cx="70" cy="60" r="8" fill="none" stroke="#2F2F2F" strokeWidth="1"/>
+            <path d="M 58 60 L 62 60" stroke="#2F2F2F" strokeWidth="1"/>
+          </>
+        );
+
+      case "コトリン": // 鳥
+        return (
+          <>
+            {/* 鳥のくちばし */}
+            <polygon points="60,65 65,68 60,71" fill="#FFA500"/>
+            {/* 羽 */}
+            <ellipse cx="35" cy="60" rx="10" ry="15" fill={colors.accent} opacity="0.6" transform="rotate(-30 35 60)"/>
+            <ellipse cx="85" cy="60" rx="10" ry="15" fill={colors.accent} opacity="0.6" transform="rotate(30 85 60)"/>
+            {/* 羽の模様 */}
+            <path d="M 30 55 Q 35 50 40 55" stroke="#FF4500" strokeWidth="1" fill="none"/>
+            <path d="M 30 65 Q 35 60 40 65" stroke="#FF4500" strokeWidth="1" fill="none"/>
+            <path d="M 80 55 Q 85 50 90 55" stroke="#FF4500" strokeWidth="1" fill="none"/>
+            <path d="M 80 65 Q 85 60 90 65" stroke="#FF4500" strokeWidth="1" fill="none"/>
+            {/* とさか */}
+            <polygon points="55,30 60,25 65,30" fill="#FF4500"/>
+          </>
+        );
+
+      case "スウィフト": // 速い鳥
+        return (
+          <>
+            {/* 流線型のデザイン */}
+            <path d="M 25 60 Q 40 55 60 60 Q 80 65 95 60" stroke={colors.accent} strokeWidth="3" fill="none" opacity="0.5"/>
+            {/* 翼 */}
+            <ellipse cx="30" cy="55" rx="15" ry="8" fill={colors.accent} opacity="0.7" transform="rotate(-20 30 55)"/>
+            <ellipse cx="90" cy="65" rx="15" ry="8" fill={colors.accent} opacity="0.7" transform="rotate(20 90 65)"/>
+            {/* スピードライン */}
+            <g opacity="0.4">
+              <path d="M 20 45 L 35 47" stroke="#FF6347" strokeWidth="2"/>
+              <path d="M 22 55 L 37 57" stroke="#FF6347" strokeWidth="2"/>
+              <path d="M 25 65 L 40 67" stroke="#FF6347" strokeWidth="2"/>
+            </g>
+          </>
+        );
+
+      case "クロージャ": // 括弧
+        return (
+          <>
+            {/* 括弧 */}
+            <path d="M 25 45 Q 20 50 20 60 Q 20 70 25 75" stroke={colors.accent} strokeWidth="3" fill="none"/>
+            <path d="M 95 45 Q 100 50 100 60 Q 100 70 95 75" stroke={colors.accent} strokeWidth="3" fill="none"/>
+            <path d="M 35 50 Q 32 55 32 60 Q 32 65 35 70" stroke={colors.accent} strokeWidth="2" fill="none"/>
+            <path d="M 85 50 Q 88 55 88 60 Q 88 65 85 70" stroke={colors.accent} strokeWidth="2" fill="none"/>
+            {/* データフロー */}
+            <circle cx="45" cy="55" r="1" fill={colors.accessory} className="animate-pulse"/>
+            <circle cx="55" cy="60" r="1" fill={colors.accessory} className="animate-pulse" style={{animationDelay: '0.5s'}}/>
+            <circle cx="65" cy="55" r="1" fill={colors.accessory} className="animate-pulse" style={{animationDelay: '1s'}}/>
+            <circle cx="75" cy="60" r="1" fill={colors.accessory} className="animate-pulse" style={{animationDelay: '1.5s'}}/>
+          </>
+        );
+
+      case "タイプくん": // 型
+        return (
+          <>
+            {/* 型注釈 */}
+            <text x="25" y="40" fontSize="6" fill={colors.accent}>string</text>
+            <text x="80" y="45" fontSize="6" fill={colors.accent}>number</text>
+            <text x="30" y="85" fontSize="6" fill={colors.accent}>boolean</text>
+            <text x="75" y="85" fontSize="6" fill={colors.accent}>object</text>
+            {/* 型安全の盾 */}
+            <polygon points="60,25 50,35 50,45 60,50 70,45 70,35" fill={colors.accent} opacity="0.6"/>
+            <text x="57" y="40" fontSize="8" fill="#FFFFFF">T</text>
+            {/* エラーマーク（取り消し線） */}
+            <g opacity="0.3">
+              <circle cx="40" cy="65" r="4" fill="none" stroke="#FF0000" strokeWidth="1"/>
+              <path d="M 37 62 L 43 68" stroke="#FF0000" strokeWidth="1"/>
+            </g>
+          </>
+        );
+
+      case "ジャバスク": // JavaScript - カラフルで自由
+        return (
+          <>
+            {/* カラフルなコード断片 */}
+            <rect x="25" y="40" width="15" height="8" fill="#FF69B4" opacity="0.6" rx="2"/>
+            <rect x="80" y="45" width="12" height="6" fill="#00FF00" opacity="0.6" rx="2"/>
+            <rect x="30" y="75" width="10" height="10" fill="#00BFFF" opacity="0.6" rx="2"/>
+            <rect x="80" y="75" width="8" height="12" fill="#FFD700" opacity="0.6" rx="2"/>
+            {/* 動的な要素 */}
+            <g className="animate-pulse">
+              <circle cx="40" cy="50" r="3" fill="#FF1493"/>
+              <polygon points="75,35 80,40 75,45 70,40" fill="#00FF00"/>
+              <rect x="45" y="80" width="6" height="6" fill="#00BFFF" rx="1"/>
+            </g>
+            {/* 関数の波括弧 */}
+            <path d="M 35 55 Q 30 60 35 65" stroke={colors.accent} strokeWidth="2" fill="none"/>
+            <path d="M 85 55 Q 90 60 85 65" stroke={colors.accent} strokeWidth="2" fill="none"/>
+          </>
+        );
+
+      default:
+        return null;
+    }
+  };
+  
+  return (
+    <div className={`${sizeClasses[size]} relative flex-shrink-0`}>
+      <svg 
+        viewBox="0 0 120 120" 
+        className="w-full h-full drop-shadow-lg hover:drop-shadow-xl transition-all duration-300 transform hover:scale-105"
+      >
+        {/* グラデーション定義 */}
+        <defs>
+          <linearGradient id={`gradient-${character.name}`} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor={colors.body} />
+            <stop offset="100%" stopColor={colors.accent} />
+          </linearGradient>
+          <filter id="glow">
+            <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+            <feMerge> 
+              <feMergeNode in="coloredBlur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>
+
+        {/* 背景円 */}
+        <circle 
+          cx="60" 
+          cy="60" 
+          r="55" 
+          fill={`url(#gradient-${character.name})`}
+          className="animate-pulse"
+        />
+        
+        {/* キャラクター固有の特徴 */}
+        {renderCharacterFeatures()}
+        
+        {/* 基本の顔（特殊なキャラ以外） */}
+        {!["パイソン"].includes(character.name) && (
+          <>
+            {/* 顔のベース */}
+            <circle cx="60" cy="65" r="25" fill="#FFF8DC" stroke={colors.accent} strokeWidth="1"/>
+            
+            {/* 通常の目 */}
+            <circle cx="52" cy="62" r="3" fill="#2F4F4F"/>
+            <circle cx="68" cy="62" r="3" fill="#2F4F4F"/>
+            <circle cx="53" cy="61" r="1" fill="#FFF"/>
+            <circle cx="69" cy="61" r="1" fill="#FFF"/>
+            
+            {/* 鼻 */}
+            <ellipse cx="60" cy="68" rx="1.5" ry="1" fill="#FFB6C1"/>
+            
+            {/* 口 */}
+            <path d="M 56 73 Q 60 76 64 73" stroke={colors.accent} strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+            
+            {/* ほっぺた */}
+            <circle cx="47" cy="68" r="2" fill="#FFB6C1" opacity="0.6"/>
+            <circle cx="73" cy="68" r="2" fill="#FFB6C1" opacity="0.6"/>
+          </>
+        )}
+
+        {/* パイソンの特殊な顔 */}
+        {character.name === "パイソン" && (
+          <>
+            {/* ヘビの顔 */}
+            <ellipse cx="60" cy="65" rx="28" ry="20" fill="#90EE90" stroke={colors.accent} strokeWidth="1"/>
+          </>
+        )}
+        
+        {/* キラキラエフェクト */}
+        <g className="animate-ping" style={{animationDuration: '3s'}}>
+          <circle cx="20" cy="25" r="1" fill="#FFD700" opacity="0.8"/>
+          <circle cx="100" cy="30" r="1" fill="#FFD700" opacity="0.8"/>
+          <circle cx="15" cy="95" r="1" fill="#FFD700" opacity="0.8"/>
+          <circle cx="105" cy="90" r="1" fill="#FFD700" opacity="0.8"/>
+        </g>
+      </svg>
+      
+      {/* 名前ラベル */}
+      {size === "large" && (
+        <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 bg-white px-3 py-1 rounded-full shadow-lg border-2 border-purple-200">
+          <span className="text-sm font-bold text-gray-700">{character.name}</span>
+        </div>
+      )}
+    </div>
+  );
+};
+const characters = {
+  "IIOO": {
+    name: "ラスティ",
+    icon: Shield,
+    personality: "堅実で信頼できる職人気質",
+    catchphrase: "安全第一、効率も大事！",
+    color: "from-orange-400 to-red-500",
+    nanoBananaPrompt: "A reliable and sturdy engineer character with safety gear, wearing protective goggles and work gloves, holding a wrench, orange and metallic color scheme, professional workshop background, anime style, confident and trustworthy expression, focused on precision and safety"
+  },
+  "IIOA": {
+    name: "ゴーファー",
+    icon: Circle, 
+    personality: "シンプルで実用的な現実主義者",
+    catchphrase: "シンプルが一番だよ！",
+    color: "from-cyan-400 to-blue-500",
+    nanoBananaPrompt: "A simple and practical engineer character with minimalist design, wearing a clean blue jumpsuit, holding simple tools, cyan and blue color scheme, modern clean workspace background, anime style, friendly and straightforward expression, embodying simplicity and efficiency"
+  },
+  "IIFO": {
+    name: "ジャヴァ",
+    icon: Coffee,
+    personality: "チームワークを大切にする安定志向",
+    catchphrase: "みんなで作ると良いものができる！",
+    color: "from-amber-400 to-orange-500",
+    nanoBananaPrompt: "A team-oriented corporate engineer character holding a coffee cup, wearing a business casual outfit with a company badge, warm brown and orange colors, modern office background with team members, anime style, warm and collaborative expression, symbolizing teamwork and enterprise stability"
+  },
+  "IIFA": {
+    name: "パイソン",
+    icon: Workflow,
+    personality: "好奇心旺盛で創造力豊か",
+    catchphrase: "アイデアをすぐに形にしよう！",
+    color: "from-green-400 to-blue-500",
+    nanoBananaPrompt: "A creative and curious scientist character with messy hair, wearing a lab coat with colorful stains, surrounded by floating code snippets and data visualizations, green and blue gradient colors, innovative laboratory background, anime style, excited and imaginative expression, representing rapid prototyping and creativity"
+  },
+  "IAOO": {
+    name: "ハスケル",
+    icon: BookOpen,
+    personality: "数学的で哲学的な完璧主義者",
+    catchphrase: "美しいコードこそ最高の芸術！",
+    color: "from-purple-400 to-indigo-500",
+    nanoBananaPrompt: "An elegant mathematical philosopher character wearing academic robes, holding ancient books with mathematical formulas floating around, purple and indigo mystical colors, ethereal library background with floating geometric patterns, anime style, wise and contemplative expression, embodying pure functional beauty"
+  },
+  "IAOA": {
+    name: "スカラ",
+    icon: Layers,
+    personality: "多才で適応力の高い表現者",
+    catchphrase: "色んなスタイルで攻めてみよう！",
+    color: "from-red-400 to-pink-500",
+    nanoBananaPrompt: "A versatile multi-talented artist character wearing layered clothing with mixed patterns, holding both paintbrush and coding tools, red and pink vibrant colors, dynamic studio space with multiple art styles, anime style, expressive and adaptive personality, representing multi-paradigm flexibility"
+  },
+  "IAFO": {
+    name: "シーシャープ",
+    icon: Building2,
+    personality: "企業的で安定感のあるリーダー",
+    catchphrase: "ビジネスの成功をコードで実現！",
+    color: "from-blue-400 to-purple-500",
+    nanoBananaPrompt: "A professional business leader character in formal attire with Microsoft-style corporate aesthetic, holding a tablet with business charts, blue and purple corporate colors, modern enterprise office background, anime style, confident and authoritative expression, representing enterprise leadership and stability"
+  },
+  "IAFA": {
+    name: "クロージャ",
+    icon: RotateCw,
+    personality: "自由で柔軟な思想家",
+    catchphrase: "データが踊るような美しさを！",
+    color: "from-teal-400 to-green-500",
+    nanoBananaPrompt: "A free-spirited data mystic character with flowing robes and spiral patterns, surrounded by dancing data streams and parentheses symbols, teal and green flowing colors, abstract digital realm background, anime style, serene and philosophical expression, embodying functional programming elegance"
+  },
+  "OIOO": {
+    name: "シーちゃん",
+    icon: Zap,
+    personality: "スピード重視の効率主義者",
+    catchphrase: "速度が命！無駄は許さない！",
+    color: "from-yellow-400 to-orange-500",
+    nanoBananaPrompt: "A lightning-fast speed demon engineer character with racing gear and lightning bolt accessories, holding optimization tools, bright yellow and orange electric colors, high-tech speed lab background with performance metrics, anime style, intense and focused expression, representing maximum efficiency and speed"
+  },
+  "OIOA": {
+    name: "プラプラ",
+    icon: Rocket,
+    personality: "高性能で表現力豊かなパフォーマー",
+    catchphrase: "性能と表現力、両方とも最高に！",
+    color: "from-blue-400 to-indigo-500",
+    nanoBananaPrompt: "A powerful rocket engineer character with futuristic armor and performance enhancing gadgets, surrounded by rocket engines and performance graphs, blue and indigo tech colors, advanced aerospace facility background, anime style, determined and ambitious expression, embodying high performance computing"
+  },
+  "OIFO": {
+    name: "ピーちゃん",
+    icon: Globe,
+    personality: "実用的でユーザー思いのWeb職人",
+    catchphrase: "使いやすさが一番大事！",
+    color: "from-purple-400 to-blue-500",
+    nanoBananaPrompt: "A friendly web craftsman character wearing casual clothes with web design tools, surrounded by floating website elements and user interface components, purple and blue web colors, modern web studio background, anime style, caring and user-focused expression, representing practical web development"
+  },
+  "OIFA": {
+    name: "ルビー",
+    icon: Gem,
+    personality: "優雅で開発者想いの芸術家",
+    catchphrase: "開発者の幸せが私の幸せ♡",
+    color: "from-pink-400 to-red-500",
+    nanoBananaPrompt: "An elegant gem-adorned artist character with sparkling ruby accessories, wearing beautiful flowing clothes, surrounded by artistic code patterns and happiness symbols, pink and red luxury colors, artistic studio background, anime style, graceful and caring expression, embodying developer happiness and beauty"
+  },
+  "OAOO": {
+    name: "コトリン",
+    icon: Feather,
+    personality: "モダンで安全志向の新世代",
+    catchphrase: "安全で簡潔、それが現代流！",
+    color: "from-orange-400 to-purple-500",
+    nanoBananaPrompt: "A modern trendy developer character with feather motifs and safety gear, wearing contemporary tech fashion, surrounded by safety shields and modern UI elements, orange to purple gradient colors, sleek modern workspace background, anime style, confident and safety-conscious expression, representing modern development practices"
+  },
+  "OAOA": {
+    name: "スウィフト",
+    icon: Wind,
+    personality: "スマートで洗練された革新者",
+    catchphrase: "美しく、速く、安全に！",
+    color: "from-orange-400 to-red-500",
+    nanoBananaPrompt: "A swift and elegant innovator character with wind-flowing elements and Apple-inspired design, wearing sleek modern attire, surrounded by flowing Swift logo elements and iOS interfaces, orange and red swift colors, minimalist Apple-style background, anime style, intelligent and refined expression, embodying swift innovation"
+  },
+  "OAFO": {
+    name: "タイプくん",
+    icon: FileText,
+    personality: "型にこだわる几帳面な完璧主義者",
+    catchphrase: "型があれば安心、バグも怖くない！",
+    color: "from-blue-400 to-cyan-500",
+    nanoBananaPrompt: "A meticulous type-checking character wearing precise formal attire with type annotation accessories, holding type safety certificates, surrounded by floating type definitions and error-free code, blue and cyan precise colors, organized clean workspace background, anime style, careful and perfectionist expression, representing type safety obsession"
+  },
+  "OAFA": {
+    name: "ジャバスク",
+    icon: Palette,
+    personality: "自由奔放で創造性溢れる冒険家",
+    catchphrase: "可能性は無限大！何でもできる！",
+    color: "from-yellow-400 to-pink-500",
+    nanoBananaPrompt: "A wild creative adventurer character with paint-splattered clothes and artistic tools, surrounded by colorful code snippets and creative chaos, rainbow colors from yellow to pink, dynamic creative studio background, anime style, enthusiastic and boundless expression, representing unlimited JavaScript possibilities"
+  }
+};
+
+// 診断結果タイプ定義
+const archetypes = {
+  "IIOO": {
+    language: "Rust",
+    algorithm: "動的計画法（DP）",
+    description: "堅牢で効率的な実装を重視するタイプ。メモリ安全性と速度を両立し、複雑な問題を段階的に解決する。",
+    traits: ["メモリ効率重視", "型安全性", "システムプログラミング", "最適化志向"],
+    code: `fn solve_problem(n: usize) -> i32 {\n    let mut dp = vec![0; n + 1];\n    // 確実で効率的な解法\n    dp[n]\n}`,
+    strengths: ["バグの少ない堅牢なコード", "パフォーマンス最適化", "システム設計"],
+    weaknesses: ["学習コストが高い", "開発速度が遅い場合がある"]
+  },
+  "IIOA": {
+    language: "Go",
+    algorithm: "並行処理",
+    description: "シンプルで実用的な並行処理を得意とするタイプ。効率的でありながら柔軟性も持つ。",
+    traits: ["シンプルな設計", "並行処理", "実用性重視", "スケーラビリティ"],
+    code: `func process() {\n    go func() {\n        // シンプルで効率的な処理\n    }()\n}`,
+    strengths: ["読みやすいコード", "スケーラブルなシステム", "実装の速さ"],
+    weaknesses: ["複雑な抽象化が苦手", "ジェネリクスが限定的"]
+  },
+  "IIFO": {
+    language: "Java",
+    algorithm: "オブジェクト指向設計",
+    description: "安定した構造とチーム開発を重視するタイプ。エンタープライズ級のシステム構築が得意。",
+    traits: ["オブジェクト指向", "エンタープライズ", "チーム開発", "保守性"],
+    code: `public class Solution {\n    public void execute() {\n        // 構造化された解決策\n    }\n}`,
+    strengths: ["大規模開発に適している", "保守しやすいコード", "豊富なライブラリ"],
+    weaknesses: ["記述量が多い", "学習コストが高い"]
+  },
+  "IIFA": {
+    language: "Python",
+    algorithm: "機械学習",
+    description: "柔軟で実装スピードが速いタイプ。アイデアをコードにすぐ落とし込める一方、仕様が曖昧だと迷走しがち。",
+    traits: ["プロトタイピング", "データ分析", "AI/ML", "実装速度"],
+    code: `def you():\n    import creativity as c\n    return c.implement_idea()`,
+    strengths: ["迅速なプロトタイピング", "豊富なライブラリ", "学習しやすい"],
+    weaknesses: ["実行速度が遅い", "型安全性に課題"]
+  },
+  "IAOO": {
+    language: "Haskell",
+    algorithm: "関数型プログラミング",
+    description: "数学的で純粋な関数型思考を持つタイプ。副作用のないエレガントなコードを書く。",
+    traits: ["関数型パラダイム", "数学的思考", "純粋性", "型システム"],
+    code: `solve :: [Int] -> Int\nsolve = foldl (\\acc x -> acc + x) 0\n-- 純粋で美しい解法`,
+    strengths: ["バグが少ない", "数学的に美しいコード", "並行処理に強い"],
+    weaknesses: ["学習曲線が急峻", "実用性で劣る場合がある"]
+  },
+  "IAOA": {
+    language: "Scala",
+    algorithm: "関数型+OOP",
+    description: "関数型とオブジェクト指向を柔軟に使い分けるタイプ。複雑な問題に対して多角的なアプローチを取る。",
+    traits: ["マルチパラダイム", "関数型+OOP", "表現力", "型安全性"],
+    code: `val solution = (data: List[Int]) => {\n  data.filter(_ > 0)\n      .map(_.toString)\n}`,
+    strengths: ["表現力が高い", "柔軟なプログラミングスタイル", "JVM互換"],
+    weaknesses: ["複雑になりがち", "学習コストが高い"]
+  },
+  "IAFO": {
+    language: "C#",
+    algorithm: "LINQ",
+    description: "構造化されたアプローチで、データ処理と UI 開発を両立するタイプ。企業開発に最適。",
+    traits: ["データクエリ", "UI開発", "企業開発", "統合開発環境"],
+    code: `var result = data\n    .Where(x => x.IsActive)\n    .Select(x => x.Process())\n    .ToList();`,
+    strengths: ["統合開発環境", "豊富なフレームワーク", "企業サポート"],
+    weaknesses: ["Microsoftエコシステム依存", "ライセンス費用"]
+  },
+  "IAFA": {
+    language: "Clojure",
+    algorithm: "Lisp系関数型",
+    description: "柔軟で動的な関数型プログラミングを好むタイプ。データ変換と並行処理が得意。",
+    traits: ["Lisp系", "データ変換", "並行処理", "REPL駆動"],
+    code: `(defn process [data]\n  (->> data\n       (filter pos?)\n       (map inc)))`,
+    strengths: ["REPLでの対話的開発", "データ処理に強い", "並行処理"],
+    weaknesses: ["特殊な構文", "エコシステムが小さい"]
+  },
+  "OIOO": {
+    language: "C",
+    algorithm: "二分探索",
+    description: "低レベルで効率的なプログラミングを重視するタイプ。ハードウェアに近い確実な制御を好む。",
+    traits: ["システムプログラミング", "メモリ管理", "効率性", "ハードウェア制御"],
+    code: `int binary_search(int arr[], int n, int x) {\n    // 確実で効率的な探索\n    return result;\n}`,
+    strengths: ["実行速度が最速", "メモリ効率", "システム制御"],
+    weaknesses: ["メモリ管理が複雑", "開発効率が低い"]
+  },
+  "OIOA": {
+    language: "C++",
+    algorithm: "STL",
+    description: "パフォーマンスと表現力のバランスを取るタイプ。ゲーム開発や高性能計算が得意。",
+    traits: ["STLライブラリ", "テンプレート", "ゲーム開発", "高性能計算"],
+    code: `std::vector<int> process(const auto& data) {\n    std::sort(data.begin(), data.end());\n    return data;\n}`,
+    strengths: ["高いパフォーマンス", "豊富なライブラリ", "表現力"],
+    weaknesses: ["複雑な言語仕様", "コンパイル時間が長い"]
+  },
+  "OIFO": {
+    language: "PHP",
+    algorithm: "Web開発パターン",
+    description: "実用的なWeb開発を重視するタイプ。チーム開発とユーザビリティを大切にする。",
+    traits: ["Web開発", "CMS", "実用性", "学習しやすさ"],
+    code: `function processRequest($data) {\n    // 実用的で分かりやすい処理\n    return $result;\n}`,
+    strengths: ["Web開発に特化", "学習しやすい", "豊富なCMS"],
+    weaknesses: ["型安全性に課題", "パフォーマンス制限"]
+  },
+  "OIFA": {
+    language: "Ruby",
+    algorithm: "メタプログラミング",
+    description: "開発者の幸福度を重視するタイプ。美しいコードと開発効率を両立する。",
+    traits: ["開発者体験", "メタプログラミング", "Web開発", "表現力"],
+    code: `def magic_method\n  "Ruby makes developers happy"\nend`,
+    strengths: ["開発効率が高い", "表現力豊か", "コミュニティ"],
+    weaknesses: ["実行速度が遅い", "メタプログラミングの複雑さ"]
+  },
+  "OAOO": {
+    language: "Kotlin",
+    algorithm: "型安全設計",
+    description: "Javaの良さを保ちながら、より表現力豊かなコードを書くタイプ。Android開発に最適。",
+    traits: ["null安全", "Android開発", "関数型要素", "Java互換"],
+    code: `fun process(data: List<String>?): List<Int> {\n    return data?.map { it.length } ?: emptyList()\n}`,
+    strengths: ["null安全", "簡潔な構文", "Java互換性"],
+    weaknesses: ["比較的新しい言語", "エコシステム構築中"]
+  },
+  "OAOA": {
+    language: "Swift",
+    algorithm: "プロトコル指向",
+    description: "安全性と表現力を両立するタイプ。iOS開発とクロスプラットフォーム開発が得意。",
+    traits: ["iOS開発", "プロトコル指向", "型安全", "パフォーマンス"],
+    code: `protocol Processable {\n    func process() -> String\n}\nextension String: Processable { }`,
+    strengths: ["iOS開発に最適", "モダンな言語設計", "安全性"],
+    weaknesses: ["Appleエコシステム依存", "学習リソースが限定的"]
+  },
+  "OAFO": {
+    language: "TypeScript",
+    algorithm: "型システム設計",
+    description: "JavaScriptの柔軟性と型安全性を両立するタイプ。フロントエンド開発のリーダー的存在。",
+    traits: ["型安全性", "Web開発", "エコシステム", "段階的導入"],
+    code: `interface User {\n  name: string;\n  process(): Promise<r>;\n}\n// 型安全で表現力豊か`,
+    strengths: ["JavaScript互換", "豊富なエコシステム", "段階的導入"],
+    weaknesses: ["設定が複雑", "ビルドプロセスが必要"]
+  },
+  "OAFA": {
+    language: "JavaScript",
+    algorithm: "遺伝的アルゴリズム",
+    description: "創造性と適応性を重視するタイプ。アイデアを素早く形にし、進化させていく。",
+    traits: ["プロトタイピング", "フロントエンド", "ノード.js", "エコシステム"],
+    code: `const evolve = (population) => {\n  return population\n    .mutate()\n    .select()\n    .crossover();\n};`,
+    strengths: ["開発速度が速い", "豊富なライブラリ", "フルスタック対応"],
+    weaknesses: ["型安全性がない", "実行時エラーが多い"]
+  }
+};
+
+// スコア計算関数
+const calculateScores = (answers) => {
+  const scores = { IO: 0, Data: 0, Logic: 0, Process: 0 };
+  
+  questions.forEach((question, index) => {
+    const answer = answers[index];
+    const scoreValue = (answer - 3) * question.weight;
+    scores[question.axis] += scoreValue;
+  });
+  
+  return scores;
+};
+
+// タイプ決定関数
+const determineType = (scores) => {
+  const io = scores.IO > 0 ? 'I' : 'O';
+  const data = scores.Data > 0 ? 'I' : 'A';
+  const logic = scores.Logic > 0 ? 'O' : 'F';
+  const process = scores.Process > 0 ? 'O' : 'A';
+  
+  return `${io}${data}${logic}${process}`;
+};
+
+const CodeArchetype = () => {
+  const [currentStep, setCurrentStep] = useState('start');
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [answers, setAnswers] = useState(new Array(questions.length).fill(null));
+  const [result, setResult] = useState(null);
+
+  const handleAnswer = (value) => {
+    const newAnswers = [...answers];
+    newAnswers[currentQuestion] = value;
+    setAnswers(newAnswers);
+
+    if (currentQuestion < questions.length - 1) {
+      setCurrentQuestion(currentQuestion + 1);
+    } else {
+      const scores = calculateScores(newAnswers);
+      const typeKey = determineType(scores);
+      setResult({ type: typeKey, archetype: archetypes[typeKey], character: characters[typeKey], scores });
+      setCurrentStep('result');
+    }
+  };
+
+  const resetQuiz = () => {
+    setCurrentStep('start');
+    setCurrentQuestion(0);
+    setAnswers(new Array(questions.length).fill(null));
+    setResult(null);
+  };
+
+  const shareToTwitter = () => {
+    const text = `私は${result.archetype.language}型エンジニア「${result.character.name}」でした！\n\n${result.character.catchphrase}\n\n#CodeArchetype`;
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
+  };
+
+  const shareToGitHub = () => {
+    const content = `# My Code Archetype: ${result.archetype.language} 「${result.character.name}」\n\n## キャラクター\n${result.character.personality}\n**決めゼリフ：** "${result.character.catchphrase}"\n\n## 特徴\n${result.archetype.description}\n\n## 得意なアルゴリズム\n${result.archetype.algorithm}\n\n## サンプルコード\n\`\`\`${result.archetype.language.toLowerCase()}\n${result.archetype.code}\n\`\`\`\n\n---\n*Generated by Code Archetype*`;
+    
+    alert('GitHub Gist機能は実装予定です。\n\n以下の内容をコピーして手動でGistを作成してください：\n\n' + content);
+  };
+
+  if (currentStep === 'start') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-blue-50 to-purple-50" style={{fontFamily: "'Kei', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif"}}>
+        <div className="container mx-auto px-4 py-16">
+          <div className="text-center max-w-4xl mx-auto">
+            {/* ヘロー */}
+            <div className="mb-12">
+              <div className="flex justify-center mb-6">
+                <div className="relative">
+                  <div className="w-24 h-24 bg-gradient-to-r from-pink-400 to-purple-500 rounded-full flex items-center justify-center animate-bounce">
+                    <Code2 size={48} className="text-white" />
+                  </div>
+                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center animate-pulse">
+                    <Sparkles size={20} className="text-white" />
+                  </div>
+                </div>
+              </div>
+              
+              <h1 className="text-6xl font-bold mb-6 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 bg-clip-text text-transparent">
+                Code Archetype
+              </h1>
+              
+              <p className="text-2xl mb-4 text-gray-700 font-medium">
+                あなたをコードで表すと、どんなプログラム？
+              </p>
+              
+              <p className="text-lg text-gray-600 mb-8">
+                親しみやすいキャラクターと一緒に、あなたの思考スタイルを発見しよう！
+              </p>
+            </div>
+
+            {/* 特徴カード */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+              <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                <div className="text-purple-500 mb-4 flex justify-center">
+                  <Brain size={48} />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">20問の質問</h3>
+                <p className="text-gray-600 text-sm">簡単な質問に答えるだけ</p>
+              </div>
+              
+              <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                <div className="text-pink-500 mb-4 flex justify-center">
+                  <Star size={48} />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">16種類のキャラ</h3>
+                <p className="text-gray-600 text-sm">個性豊かなキャラクター</p>
+              </div>
+              
+              <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                <div className="text-blue-500 mb-4 flex justify-center">
+                  <Code2 size={48} />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">コード表現</h3>
+                <p className="text-gray-600 text-sm">あなたを表すコード</p>
+              </div>
+              
+              <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                <div className="text-green-500 mb-4 flex justify-center">
+                  <Rocket size={48} />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">SNSシェア</h3>
+                <p className="text-gray-600 text-sm">結果をみんなに自慢</p>
+              </div>
+            </div>
+
+            {/* サンプルキャラクター */}
+            <div className="bg-white rounded-3xl p-8 mb-12 shadow-lg">
+              <h2 className="text-2xl font-bold text-gray-800 mb-6">こんなキャラクターが待ってるよ！</h2>
+              <div className="flex justify-center space-x-8 mb-6">
+                <div className="text-center">
+                  <CharacterAvatar character={characters["IIFA"]} size="medium" />
+                  <p className="text-sm font-medium text-gray-700 mt-2">パイソン</p>
+                </div>
+                <div className="text-center">
+                  <CharacterAvatar character={characters["IIOO"]} size="medium" />
+                  <p className="text-sm font-medium text-gray-700 mt-2">ラスティ</p>
+                </div>
+                <div className="text-center">
+                  <CharacterAvatar character={characters["OAFA"]} size="medium" />
+                  <p className="text-sm font-medium text-gray-700 mt-2">ジャバスク</p>
+                </div>
+                <div className="text-center">
+                  <CharacterAvatar character={characters["OIFA"]} size="medium" />
+                  <p className="text-sm font-medium text-gray-700 mt-2">ルビー</p>
+                </div>
+              </div>
+              <p className="text-gray-600">あなたにぴったりのパートナーを見つけよう！</p>
+            </div>
+            
+            <button
+              onClick={() => setCurrentStep('quiz')}
+              className="bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 hover:from-pink-600 hover:via-purple-600 hover:to-blue-600 text-white px-12 py-4 rounded-full text-xl font-bold transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl"
+            >
+              <span className="flex items-center">
+                <Sparkles className="mr-2" size={24} />
+                診断スタート！
+                <Heart className="ml-2" size={20} />
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (currentStep === 'quiz') {
+    const progress = ((currentQuestion + 1) / questions.length) * 100;
+    const question = questions[currentQuestion];
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-blue-50 to-purple-50" style={{fontFamily: "'Kei', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif"}}>
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-2xl mx-auto">
+            {/* プログレスバー */}
+            <div className="mb-8">
+              <div className="flex justify-between items-center mb-4">
+                <span className="text-lg font-medium text-gray-700">質問 {currentQuestion + 1}</span>
+                <span className="text-lg font-medium text-purple-600">{currentQuestion + 1} / {questions.length}</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                <div 
+                  className="bg-gradient-to-r from-pink-500 to-purple-500 h-3 rounded-full transition-all duration-500 ease-out"
+                  style={{width: `${progress}%`}}
+                ></div>
+              </div>
+              <div className="text-center mt-2">
+                <span className="text-sm text-gray-600">あと {questions.length - currentQuestion - 1} 問！</span>
+              </div>
+            </div>
+
+            {/* 質問カード */}
+            <div className="bg-white rounded-3xl p-8 mb-8 shadow-xl">
+              <div className="text-center mb-6">
+                <div className="text-purple-500 mb-4 flex justify-center">
+                  <Brain size={64} />
+                </div>
+                <h2 className="text-xl font-bold text-gray-800 mb-4 leading-relaxed">
+                  {question.text}
+                </h2>
+              </div>
+
+              <div className="space-y-4">
+                {[
+                  { value: 1, label: "全く当てはまらない", icon: Zap, color: "from-red-400 to-red-500" },
+                  { value: 2, label: "あまり当てはまらない", icon: Circle, color: "from-orange-400 to-orange-500" },
+                  { value: 3, label: "どちらでもない", icon: Eye, color: "from-gray-400 to-gray-500" },
+                  { value: 4, label: "やや当てはまる", icon: Heart, color: "from-blue-400 to-blue-500" },
+                  { value: 5, label: "非常に当てはまる", icon: Star, color: "from-green-400 to-green-500" }
+                ].map(option => {
+                  const IconComponent = option.icon;
+                  return (
+                    <button
+                      key={option.value}
+                      onClick={() => handleAnswer(option.value)}
+                      className="w-full p-4 text-left bg-gray-50 hover:bg-white rounded-2xl transition-all duration-200 border-2 border-transparent hover:border-purple-300 hover:shadow-lg transform hover:-translate-y-1"
+                    >
+                      <div className="flex items-center">
+                        <div className={`w-12 h-12 bg-gradient-to-r ${option.color} rounded-full mr-4 flex items-center justify-center text-white font-bold flex-shrink-0`}>
+                          <IconComponent size={24} />
+                        </div>
+                        <span className="text-gray-800 font-medium">{option.label}</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 戻るボタン */}
+            {currentQuestion > 0 && (
+              <div className="text-center">
+                <button
+                  onClick={() => setCurrentQuestion(currentQuestion - 1)}
+                  className="text-purple-600 hover:text-purple-800 transition-colors font-medium"
+                >
+                  ← 前の質問に戻る
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (currentStep === 'result' && result) {
+    const archetype = result.archetype;
+    const character = result.character;
+    
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-blue-50 to-purple-50" style={{fontFamily: "'Kei', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif"}}>
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-4xl mx-auto">
+            {/* 結果ヘッダー */}
+            <div className="text-center mb-8">
+              <div className="mb-6">
+                <CharacterAvatar character={character} size="large" />
+              </div>
+              
+              <h1 className="text-4xl font-bold mb-4 text-gray-800">
+                あなたは「<span className="text-purple-600">{archetype.language}型</span>」
+              </h1>
+              <h2 className="text-3xl font-bold mb-4 text-gray-700">
+                キャラクター：{character.name}
+              </h2>
+              <div className="bg-white rounded-2xl p-6 shadow-lg max-w-2xl mx-auto">
+                <p className="text-xl text-gray-700 mb-3">{character.personality}</p>
+                <div className="text-lg font-medium text-purple-600 italic">
+                  「{character.catchphrase}」
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+              {/* 基本情報 */}
+              <div className="bg-white rounded-3xl p-8 shadow-xl">
+                <h2 className="text-2xl font-bold mb-6 flex items-center text-gray-800">
+                  <Code2 className="mr-3 text-purple-500" />
+                  基本情報
+                </h2>
+                <div className="space-y-4">
+                  <div className="p-4 bg-purple-50 rounded-xl">
+                    <span className="text-gray-600 font-medium">プログラミング言語：</span>
+                    <span className="font-mono text-xl text-purple-700 font-bold">{archetype.language}</span>
+                  </div>
+                  <div className="p-4 bg-blue-50 rounded-xl">
+                    <span className="text-gray-600 font-medium">得意アルゴリズム：</span>
+                    <span className="font-mono text-blue-700 font-bold">{archetype.algorithm}</span>
+                  </div>
+                  <div className="p-4 bg-green-50 rounded-xl">
+                    <span className="text-gray-600 font-medium">特性：</span>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {archetype.traits.map((trait, index) => (
+                        <span key={index} className="px-3 py-1 bg-green-200 text-green-800 rounded-full text-sm font-medium">
+                          {trait}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 詳細解説 */}
+              <div className="bg-white rounded-3xl p-8 shadow-xl">
+                <h2 className="text-2xl font-bold mb-6 flex items-center text-gray-800">
+                  <Brain className="mr-3 text-pink-500" />
+                  性格分析
+                </h2>
+                <div className="space-y-4">
+                  <div className="p-4 bg-pink-50 rounded-xl">
+                    <p className="text-gray-700 leading-relaxed">{archetype.description}</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    {Object.entries(result.scores).map(([axis, score]) => {
+                      const labels = {
+                        IO: score > 0 ? 'Input志向' : 'Output志向',
+                        Data: score > 0 ? 'Literal型' : 'Abstract型', 
+                        Logic: score > 0 ? 'Strict型' : 'Flexible型',
+                        Process: score > 0 ? 'Structured型' : 'Adaptive型'
+                      };
+                      return (
+                        <div key={axis} className="p-3 bg-yellow-50 rounded-lg">
+                          <div className="text-sm text-gray-600">{labels[axis]}</div>
+                          <div className="font-mono text-yellow-700 font-bold">{Math.abs(score)}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* コードサンプル */}
+            <div className="bg-white rounded-3xl p-8 mb-8 shadow-xl">
+              <h2 className="text-2xl font-bold mb-6 text-gray-800 flex items-center">
+                <Sparkles className="mr-3 text-yellow-500" />
+                あなたを表すコード
+              </h2>
+              <div className="bg-gray-900 rounded-2xl p-6 overflow-x-auto">
+                <pre className="text-green-400 font-mono text-sm leading-relaxed">
+{archetype.code}
+                </pre>
+              </div>
+            </div>
+
+            {/* 強み・弱み */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+              <div className="bg-white rounded-3xl p-8 shadow-xl">
+                <h2 className="text-2xl font-bold mb-6 text-green-600 flex items-center">
+                  <Star className="mr-3" />
+                  強み
+                </h2>
+                <ul className="space-y-3">
+                  {archetype.strengths.map((strength, index) => (
+                    <li key={index} className="flex items-start p-3 bg-green-50 rounded-xl">
+                      <Sparkles className="text-green-500 mr-3 mt-1 flex-shrink-0" size={20} />
+                      <span className="text-gray-700 font-medium">{strength}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              
+              <div className="bg-white rounded-3xl p-8 shadow-xl">
+                <h2 className="text-2xl font-bold mb-6 text-orange-600 flex items-center">
+                  <Zap className="mr-3" />
+                  成長ポイント
+                </h2>
+                <ul className="space-y-3">
+                  {archetype.weaknesses.map((weakness, index) => (
+                    <li key={index} className="flex items-start p-3 bg-orange-50 rounded-xl">
+                      <Brain className="text-orange-500 mr-3 mt-1 flex-shrink-0" size={20} />
+                      <span className="text-gray-700 font-medium">{weakness}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            {/* アクションボタン */}
+            <div className="flex flex-wrap justify-center gap-4 mb-8">
+              <button
+                onClick={shareToTwitter}
+                className="flex items-center px-8 py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl font-bold"
+              >
+                <Twitter className="mr-2" size={24} />
+                Twitterでシェア
+              </button>
+              
+              <button
+                onClick={shareToGitHub}
+                className="flex items-center px-8 py-4 bg-gradient-to-r from-gray-700 to-gray-800 text-white rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl font-bold"
+              >
+                <Github className="mr-2" size={24} />
+                GitHub Gistで保存
+              </button>
+              
+              <button
+                onClick={resetQuiz}
+                className="flex items-center px-8 py-4 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl font-bold"
+              >
+                <RotateCcw className="mr-2" size={24} />
+                もう一度診断
+              </button>
+            </div>
+
+            {/* フッター */}
+            <div className="text-center">
+              <p className="text-gray-600">結果をSNSでシェアして、友達の結果と比べてみよう！</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+};
+
+export default CodeArchetype;
